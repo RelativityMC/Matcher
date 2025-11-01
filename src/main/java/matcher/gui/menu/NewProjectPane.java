@@ -5,9 +5,13 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -102,6 +106,42 @@ public class NewProjectPane extends GridPane {
 			tmp = nonObfuscatedMemberPatternA.getText();
 			nonObfuscatedMemberPatternA.setText(nonObfuscatedMemberPatternB.getText());
 			nonObfuscatedMemberPatternB.setText(tmp);
+		});
+		Button autoShared = new Button("Auto shared");
+		hbox.getChildren().add(autoShared);
+		autoShared.setOnAction(event -> {
+			HashMap<Path, byte[]> hashingCache = new HashMap<>();
+			{
+				Iterator<Path> iterator = Stream.concat(classPathA.stream(), classPathB.stream()).iterator();
+				while (iterator.hasNext()) {
+					Path path = iterator.next();
+					if (!hashingCache.containsKey(path)) {
+						hashingCache.put(path, getSHA256(path));
+					}
+				}
+			}
+
+			Iterator<Path> iteratorA = classPathA.iterator();
+			outer_loop:
+			while (iteratorA.hasNext()) {
+				Path pathA = iteratorA.next();
+				byte[] hashA = hashingCache.get(pathA);
+				if (hashA == null) continue;
+
+				Iterator<Path> iteratorB = classPathB.iterator();
+				while (iteratorB.hasNext()) {
+					Path pathB = iteratorB.next();
+					byte[] hashB = hashingCache.get(pathB);
+					if (hashB == null) continue;
+
+					if (Arrays.equals(hashA, hashB)) {
+						iteratorA.remove();
+						iteratorB.remove();
+						sharedClassPath.add(pathA);
+						continue outer_loop;
+					}
+				}
+			}
 		});
 		add(hbox, 0, 2, 2, 1);
 
@@ -284,6 +324,15 @@ public class NewProjectPane extends GridPane {
 		changeListener.onChanged(null);
 
 		return ret;
+	}
+
+	private static byte[] getSHA256(Path path) {
+		try {
+			byte[] bytes = Files.readAllBytes(path);
+			return MessageDigest.getInstance("SHA-256").digest(bytes);
+		} catch (IOException | NoSuchAlgorithmException e) {
+			return null;
+		}
 	}
 
 	private static List<ExtensionFilter> getInputLoadExtensionFilters() {
