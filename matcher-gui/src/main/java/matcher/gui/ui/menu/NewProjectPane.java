@@ -103,6 +103,11 @@ public class NewProjectPane extends GridPane {
 			nonObfuscatedMemberPatternA.setText(nonObfuscatedMemberPatternB.getText());
 			nonObfuscatedMemberPatternB.setText(tmp);
 		});
+		Button autoShared = new Button("Auto shared");
+		hbox.getChildren().add(autoShared);
+		autoShared.setOnAction(event -> {
+			HashUtil.performAutoShared(classPathA, classPathB, sharedClassPath);
+		});
 		add(hbox, 0, 2, 2, 1);
 
 		add(createFilesSelectionPane("Shared class path", sharedClassPath, window, true, true), 0, 3, 2, 1);

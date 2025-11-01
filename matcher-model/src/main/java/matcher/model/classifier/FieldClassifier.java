@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.objectweb.asm.Opcodes;
@@ -14,6 +15,7 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
 
+import matcher.NameType;
 import matcher.model.type.ClassEnvironment;
 import matcher.model.type.ClassInstance;
 import matcher.model.type.FieldInstance;
@@ -33,6 +35,7 @@ public class FieldClassifier {
 		addClassifier(initValue, 7);
 		addClassifier(initStrings, 8);
 		addClassifier(initCode, 10, ClassifierLevel.Intermediate, ClassifierLevel.Full, ClassifierLevel.Extra);
+		addClassifier(nameMatch, 8, ClassifierLevel.Full, ClassifierLevel.Extra);
 		addClassifier(readRefsBci, 6, ClassifierLevel.Extra);
 		addClassifier(writeRefsBci, 6, ClassifierLevel.Extra);
 	}
@@ -288,6 +291,38 @@ public class FieldClassifier {
 				return 1;
 			} else {
 				return (double) matched / (matched + mismatched);
+			}
+		}
+	};
+
+	private static AbstractClassifier nameMatchObf2UnObf = new AbstractClassifier("Name match") {
+		@Override
+		public double getScore(FieldInstance a, FieldInstance b, ClassEnvironment env) {
+			String nameA = a.getName(NameType.MAPPED);
+			String nameB = b.getName();
+
+			if (nameA != null && nameB != null && nameA.equals(nameB)) {
+				return 1;
+			} else {
+				return 0;
+			}
+		}
+	};
+
+	private static AbstractClassifier nameMatch = new AbstractClassifier("Name match") {
+		@Override
+		public double getScore(FieldInstance a, FieldInstance b, ClassEnvironment env) {
+			String nameA = a.getName();
+			String nameB = b.getName();
+
+			if (Objects.equals(nameA, nameB)) {
+				if (nameA == null || nameB == null || (a.getAccess() & Opcodes.ACC_SYNTHETIC) != 0 || (b.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
+					return 0.7;
+				} else {
+					return 1;
+				}
+			} else {
+				return 0;
 			}
 		}
 	};

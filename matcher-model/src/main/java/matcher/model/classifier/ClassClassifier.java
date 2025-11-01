@@ -7,6 +7,7 @@ import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.objectweb.asm.Opcodes;
@@ -48,6 +49,7 @@ public class ClassClassifier {
 		addClassifier(fieldReadReferences, 5, ClassifierLevel.Intermediate, ClassifierLevel.Full, ClassifierLevel.Extra);
 		addClassifier(fieldWriteReferences, 5, ClassifierLevel.Intermediate, ClassifierLevel.Full, ClassifierLevel.Extra);
 		addClassifier(membersFull, 10, ClassifierLevel.Full, ClassifierLevel.Extra);
+		addClassifier(nameMatch, 8, ClassifierLevel.Full, ClassifierLevel.Extra);
 		addClassifier(inRefsBci, 6, ClassifierLevel.Extra);
 	}
 
@@ -511,6 +513,38 @@ public class ClassClassifier {
 				return 1;
 			} else {
 				return (double) matched / (matched + mismatched);
+			}
+		}
+	};
+
+	private static AbstractClassifier nameMatchObf2Unobf = new AbstractClassifier("Name match") {
+		@Override
+		public double getScore(ClassInstance a, ClassInstance b, ClassEnvironment env) {
+			String nameA = a.getName(NameType.MAPPED);
+			String nameB = b.getName();
+
+			if (nameA != null && nameB != null && nameA.equals(nameB)) {
+				return 1;
+			} else {
+				return 0;
+			}
+		}
+	};
+
+	private static AbstractClassifier nameMatch = new AbstractClassifier("Name match") {
+		@Override
+		public double getScore(ClassInstance a, ClassInstance b, ClassEnvironment env) {
+			String nameA = a.getName();
+			String nameB = b.getName();
+
+			if (Objects.equals(nameA, nameB)) {
+				if ((nameA == null || nameB == null || (a.getAccess() & Opcodes.ACC_SYNTHETIC) != 0 || (b.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) && !(nameA.endsWith("package-info"))) {
+					return 0.7;
+				} else {
+					return 1;
+				}
+			} else {
+				return 0;
 			}
 		}
 	};

@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.IincInsnNode;
@@ -20,6 +21,7 @@ public class MethodVarClassifier {
 		addClassifier(position, 3);
 		addClassifier(lvIndex, 2);
 		addClassifier(usage, 8);
+		addClassifier(nameMatch, 8, ClassifierLevel.Full, ClassifierLevel.Extra);
 	}
 
 	public static void addClassifier(AbstractClassifier classifier, double weight, ClassifierLevel... levels) {
@@ -110,6 +112,24 @@ public class MethodVarClassifier {
 				return 1;
 			} else {
 				return (double) matched / (matched + mismatched);
+			}
+		}
+	};
+
+	private static AbstractClassifier nameMatch = new AbstractClassifier("Name match") {
+		@Override
+		public double getScore(MethodVarInstance argA, MethodVarInstance argB, ClassEnvironment env) {
+			String nameA = argA.getName();
+			String nameB = argB.getName();
+
+			if (Objects.equals(nameA, nameB)) {
+				if (nameA == null || nameB == null) {
+					return 0.7;
+				} else {
+					return 1;
+				}
+			} else {
+				return 0;
 			}
 		}
 	};

@@ -43,6 +43,8 @@ import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
 import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.MappingUtil;
+import net.fabricmc.mappingio.format.MappingFormat;
 
 import matcher.core.Matcher;
 import matcher.gui.srcprocess.BuiltinDecompiler;
@@ -63,6 +65,7 @@ import matcher.model.mapping.MappingField;
 import matcher.model.mapping.Mappings;
 import matcher.model.type.ClassEnvironment;
 import matcher.model.type.MatchType;
+import matcher.util.HashUtil;
 
 public class MatcherGui extends Application {
 	@Override
@@ -214,10 +217,24 @@ public class MatcherGui extends Application {
 			case "--hide-unmapped-a":
 				hideUnmappedA = true;
 				break;
+			case "--intermediary-root":
+				intermediaryRoot = Path.of(args.get(++i));
+				break;
+			case "--yarn-enigma-root":
+				yarnEnigmaRoot = Path.of(args.get(++i));
+				break;
+			case "--version-a":
+				versionA = args.get(++i);
+				break;
+			case "--version-b":
+				versionB = args.get(++i);
+				break;
 			}
 		}
 
 		if (!validProjectConfigArgPresent) return;
+
+		HashUtil.performAutoShared(classPathA, classPathB, sharedClassPath);
 
 		ProjectConfig config = new ProjectConfig.Builder(inputsA, inputsB)
 				.classPathA(new ArrayList<>(classPathA))
@@ -295,6 +312,32 @@ public class MatcherGui extends Application {
 									namespaces.get(0), namespaces.get(1),
 									MappingField.PLAIN, MappingField.MAPPED,
 									env.getEnvB(), true);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+
+					// read initial mappings
+					if (isUpdatingYarn()) {
+						try {
+							Path intermediaryA = intermediaryRoot.resolve("mappings").resolve(versionA + ".tiny");
+							List<String> namespaces = MappingReader.getNamespaces(intermediaryA, null);
+							Mappings.load(intermediaryA, MappingFormat.TINY_FILE,
+									namespaces.get(0), namespaces.get(1),
+									MappingField.PLAIN, MappingField.AUX,
+									env.getEnvA(), true
+							);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+
+						try {
+							Path yarnA = yarnEnigmaRoot;
+							Mappings.load(yarnA, MappingFormat.ENIGMA_DIR,
+									MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK,
+									MappingField.AUX, MappingField.MAPPED,
+									env.getEnvA(), true
+							);
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -650,6 +693,26 @@ public class MatcherGui extends Application {
 		return ret;
 	}
 
+	public Path getIntermediaryRoot() {
+		return intermediaryRoot;
+	}
+
+	public Path getYarnEnigmaRoot() {
+		return yarnEnigmaRoot;
+	}
+
+	public String getVersionA() {
+		return versionA;
+	}
+
+	public String getVersionB() {
+		return versionB;
+	}
+
+	public boolean isUpdatingYarn() {
+		return intermediaryRoot != null && yarnEnigmaRoot != null && versionA != null && versionB != null;
+	}
+
 	public enum SortKey {
 		Name, MappedName, MatchStatus, Similarity;
 	}
@@ -676,6 +739,11 @@ public class MatcherGui extends Application {
 	private boolean hideUnmappedA;
 	private boolean useDiffColors;
 	private Theme lastSwitchedToTheme;
+
+	private Path intermediaryRoot = null;
+	private Path yarnEnigmaRoot = null;
+	private String versionA = null;
+	private String versionB = null;
 
 	private NameType nameType = NameType.MAPPED_PLAIN;
 	private BuiltinDecompiler decompiler = BuiltinDecompiler.CFR;
