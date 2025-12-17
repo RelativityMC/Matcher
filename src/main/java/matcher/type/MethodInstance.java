@@ -20,6 +20,8 @@ import matcher.Util;
 import matcher.classifier.ClassifierUtil;
 import matcher.type.Signature.MethodSignature;
 
+import org.objectweb.asm.tree.ParameterNode;
+
 public final class MethodInstance extends MemberInstance<MethodInstance> implements ParentInstance {
 	/**
 	 * Create a shared unknown method.
@@ -67,15 +69,18 @@ public final class MethodInstance extends MemberInstance<MethodInstance> impleme
 
 		MethodVarInstance[] args = new MethodVarInstance[argTypes.length];
 		List<LocalVariableNode> locals;
+		List<ParameterNode> parameters;
 		InsnList il;
 		AbstractInsnNode firstInsn;
 
 		if (asmNode != null) {
 			locals = asmNode.localVariables;
+			parameters = asmNode.parameters;
 			il = asmNode.instructions;
 			firstInsn = il.getFirst();
 		} else {
 			locals = null;
+			parameters = null;
 			il = null;
 			firstInsn = null;
 		}
@@ -104,6 +109,15 @@ public final class MethodInstance extends MemberInstance<MethodInstance> impleme
 
 						break;
 					}
+				}
+			} else if (parameters != null) {
+				for (int j = 0; j < parameters.size(); j++) {
+					ParameterNode n = parameters.get(j);
+
+					asmIndex = j;
+					startInsn = -1;
+					endInsn = -1;
+					name = n.name;
 				}
 			}
 
