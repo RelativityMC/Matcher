@@ -585,9 +585,12 @@ public class Mappings {
 
 			for (int i = 1; i < nsTypes.size(); i++) {
 				NameType dstType = nsTypes.get(i);
+				if (dstType.mapped) {
+					dstType = NameType.MAPPED;
+				}
 				String dstName = m.getName(dstType);
 
-				if (dstName != null && dstName.equals(srcName)) { // no-op mapping
+				if (dstName != null && (!m.isNameObfuscated() && dstName.equals(srcName))) { // no-op mapping
 					dstName = null;
 				}
 
@@ -645,11 +648,14 @@ public class Mappings {
 
 						for (int i = 1; i < nsTypes.size(); i++) {
 							NameType dstType = nsTypes.get(i);
+							if (dstType.mapped) {
+								dstType = NameType.MAPPED;
+							}
 							String dstName = var.getName(dstType);
 
-							if (dstName != null && dstName.equals(srcVarName)) { // no-op mapping
-								dstName = null;
-							}
+//							if (dstName != null && dstName.equals(srcVarName)) { // no-op mapping
+//								dstName = null;
+//							}
 
 							hasAnyDstName |= dstName != null;
 							dstVarNames[i - 1] = dstName;
@@ -712,11 +718,14 @@ public class Mappings {
 
 			for (int i = 1; i < nsTypes.size(); i++) {
 				NameType dstType = nsTypes.get(i);
+				if (dstType.mapped) {
+					dstType = NameType.MAPPED;
+				}
 				String dstName = f.getName(dstType);
 
-				if (dstName != null && dstName.equals(srcName)) { // no-op mapping
-					dstName = null;
-				}
+//				if (dstName != null && dstName.equals(srcName)) { // no-op mapping
+//					dstName = null;
+//				}
 
 				dstMemberNames[i - 1] = dstName;
 				dstMemberDescs[i - 1] = f.getDesc(dstType);
@@ -758,7 +767,8 @@ public class Mappings {
 		case AUX2_PLAIN:
 			return type.getAuxIndex() > 0 ? String.format("aux%d", type.getAuxIndex()) : "aux";
 		case MAPPED_AUX_PLAIN:
-			return "named-aux";
+		case MAPPED_AUX2_PLAIN:
+			return type.getAuxIndex() > 0 ? String.format("named-aux%d", type.getAuxIndex()) : "named-aux";
 		default: throw new IllegalArgumentException();
 		}
 	}
@@ -767,6 +777,10 @@ public class Mappings {
 			MappingsExportVerbosity verbosity, boolean forAnyInput, Set<Set<MethodInstance>> exportedHierarchies) {
 		String srcName = method.getName(nsTypes.get(0));
 		if (srcName == null) return false;
+
+//		if (method.hasParentMethod()) {
+//			return false;
+//		}
 
 		return format.supportsComments && method.getMappedComment() != null
 				|| format.supportsArgs && shouldExportAny(method.getArgs(), format, nsTypes)
@@ -789,9 +803,13 @@ public class Mappings {
 
 	private static boolean hasAnyNames(Matchable<?> m, String srcName, List<NameType> nsTypes) {
 		for (int i = 1; i < nsTypes.size(); i++) {
-			String dstName = m.getName(nsTypes.get(i));
+			NameType type = nsTypes.get(i);
+			if (type.mapped) {
+				type = NameType.MAPPED;
+			}
+			String dstName = m.getName(type);
 
-			if (dstName != null && !dstName.equals(srcName)) return true;
+			if (dstName != null && (m.isNameObfuscated() || !dstName.equals(srcName))) return true;
 		}
 
 		return false;
