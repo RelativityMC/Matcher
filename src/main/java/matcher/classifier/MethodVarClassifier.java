@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -121,8 +122,12 @@ public class MethodVarClassifier {
 		public double getScore(MethodVarInstance argA, MethodVarInstance argB, ClassEnvironment env) {
 			String nameA = argA.getName();
 			String nameB = argB.getName();
-			if (nameA != null && nameB != null && nameA.equals(nameB)) {
-				return 1;
+			if (Objects.equals(nameA, nameB)) {
+				if (nameA == null || nameB == null) {
+					return 0.7;
+				} else {
+					return 1;
+				}
 			} else {
 				return 0;
 			}

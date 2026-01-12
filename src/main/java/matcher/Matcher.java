@@ -856,8 +856,8 @@ public class Matcher {
 	private final double relMethodAutoMatchThreshold = 0.08;
 	private final double absFieldAutoMatchThreshold = 0.80;
 	private final double relFieldAutoMatchThreshold = 0.080;
-	private final double absMethodArgAutoMatchThreshold = 0.80;
-	private final double relMethodArgAutoMatchThreshold = 0.080;
-	private final double absMethodVarAutoMatchThreshold = 0.80;
-	private final double relMethodVarAutoMatchThreshold = 0.080;
+	private final double absMethodArgAutoMatchThreshold = 0.75;
+	private final double relMethodArgAutoMatchThreshold = 0.075;
+	private final double absMethodVarAutoMatchThreshold = 0.75;
+	private final double relMethodVarAutoMatchThreshold = 0.075;
 }

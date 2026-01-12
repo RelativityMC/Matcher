@@ -7,6 +7,7 @@ import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import matcher.NameType;
@@ -346,8 +347,8 @@ public class MethodClassifier {
 		public double getScore(MethodInstance a, MethodInstance b, ClassEnvironment env) {
 			String nameA = a.getName();
 			String nameB = b.getName();
-			if (nameA != null && nameB != null && nameA.equals(nameB)) {
-				if ((a.getAccess() & Opcodes.ACC_SYNTHETIC) != 0 || (b.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
+			if (Objects.equals(nameA, nameB)) {
+				if (nameA == null || nameB == null || (a.getAccess() & Opcodes.ACC_SYNTHETIC) != 0 || (b.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
 					return 0.7;
 				} else {
 					return 1;
