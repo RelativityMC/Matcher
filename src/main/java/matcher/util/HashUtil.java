@@ -38,8 +38,7 @@ public class HashUtil {
 
 		Iterator<Path> iteratorA = classPathA.iterator();
 
-		outer_loop:
-		while (iteratorA.hasNext()) {
+		outer_loop: while (iteratorA.hasNext()) {
 			Path pathA = iteratorA.next();
 			byte[] hashA = hashingCache.get(pathA);
 
