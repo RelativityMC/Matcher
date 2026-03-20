@@ -56,6 +56,7 @@ import matcher.mapping.Mappings;
 import matcher.srcprocess.BuiltinDecompiler;
 import matcher.type.ClassEnvironment;
 import matcher.type.MatchType;
+import matcher.util.HashUtil;
 
 public class Gui extends Application {
 	@Override
@@ -211,6 +212,8 @@ public class Gui extends Application {
 		}
 
 		if (!validProjectConfigArgPresent) return;
+
+		HashUtil.performAutoShared(classPathA, classPathB, sharedClassPath);
 
 		ProjectConfig config = new ProjectConfig.Builder(inputsA, inputsB)
 				.classPathA(new ArrayList<>(classPathA))
