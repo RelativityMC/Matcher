@@ -25,8 +25,11 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
 
 import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.format.MappingFormat;
 
+import matcher.Matcher;
+import matcher.NameType;
 import matcher.Util;
 import matcher.config.Config;
 import matcher.gui.Gui;
@@ -34,7 +37,9 @@ import matcher.gui.Gui.SelectedFile;
 import matcher.gui.menu.LoadMappingsPane.MappingsLoadSettings;
 import matcher.gui.menu.LoadProjectPane.ProjectLoadSettings;
 import matcher.gui.menu.SaveMappingsPane.MappingsSaveSettings;
+import matcher.mapping.MappingField;
 import matcher.mapping.Mappings;
+import matcher.mapping.MappingsExportVerbosity;
 import matcher.serdes.MatchesIo;
 import matcher.type.ClassEnvironment;
 import matcher.type.MatchType;
@@ -91,6 +96,63 @@ public class FileMenu extends Menu {
 		menuItem = new MenuItem("Save matches");
 		getItems().add(menuItem);
 		menuItem.setOnAction(event -> saveMatches());
+
+		{
+			menuItem = new SeparatorMenuItem();
+			getItems().add(menuItem);
+
+			menuItem = new MenuItem("Save matches for intermediary generation");
+			getItems().add(menuItem);
+			menuItem.setOnAction(event -> {
+				if (!gui.isUpdatingYarn()) {
+					Matcher.LOGGER.warn("Not updating yarn");
+				}
+
+				try {
+					Path matchFile = gui.getIntermediaryRoot().resolve("matches").resolve(gui.getVersionA() + "-" + gui.getVersionB() + ".match");
+					Files.deleteIfExists(matchFile);
+					MatchesIo.write(gui.getMatcher(), matchFile);
+					Matcher.LOGGER.info("Saved match file to {}", matchFile);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			});
+
+			menuItem = new MenuItem("Load intermediary for versionB and save Yarn");
+			getItems().add(menuItem);
+			menuItem.setOnAction(event -> {
+				if (!gui.isUpdatingYarn()) {
+					Matcher.LOGGER.warn("Not updating yarn");
+				}
+
+				try {
+					Path intermediaryB = gui.getIntermediaryRoot().resolve("mappings").resolve(gui.getVersionB() + ".tiny");
+					List<String> namespaces = MappingReader.getNamespaces(intermediaryB, null);
+					Mappings.load(intermediaryB, MappingFormat.TINY_FILE,
+							namespaces.get(0), namespaces.get(1),
+							MappingField.PLAIN, MappingField.AUX2,
+							gui.getEnv().getEnvB(), true
+					);
+
+					Path yarnB = gui.getYarnEnigmaRoot();
+
+					if (!Util.clearDir(yarnB, file -> !Files.isDirectory(file) && !file.getFileName().toString().endsWith(".mapping"))) {
+						Matcher.LOGGER.error("Error cleaning yarn directory");
+						throw new IOException("Error cleaning yarn directory");
+					}
+
+					Mappings.save(yarnB, MappingFormat.ENIGMA_DIR,
+							gui.getEnv().getEnvB(),
+							List.of(NameType.AUX2_PLAIN, NameType.MAPPED_AUX2_PLAIN),
+							List.of(MappingUtil.NS_SOURCE_FALLBACK, MappingUtil.NS_TARGET_FALLBACK),
+							MappingsExportVerbosity.ROOTS,
+							false, true
+					);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			});
+		}
 
 		getItems().add(new SeparatorMenuItem());
 
