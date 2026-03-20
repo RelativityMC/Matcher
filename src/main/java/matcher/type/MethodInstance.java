@@ -14,13 +14,12 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.LocalVariableNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.ParameterNode;
 
 import matcher.NameType;
 import matcher.Util;
 import matcher.classifier.ClassifierUtil;
 import matcher.type.Signature.MethodSignature;
-
-import org.objectweb.asm.tree.ParameterNode;
 
 public final class MethodInstance extends MemberInstance<MethodInstance> implements ParentInstance {
 	/**

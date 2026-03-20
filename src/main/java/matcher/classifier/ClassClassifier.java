@@ -10,8 +10,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import matcher.NameType;
-
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldNode;
@@ -20,6 +18,7 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import matcher.Matcher;
+import matcher.NameType;
 import matcher.Util;
 import matcher.type.ClassEnvironment;
 import matcher.type.ClassInstance;
@@ -525,6 +524,7 @@ public class ClassClassifier {
 		public double getScore(ClassInstance a, ClassInstance b, ClassEnvironment env) {
 			String nameA = a.getName(NameType.MAPPED);
 			String nameB = b.getName();
+
 			if (nameA != null && nameB != null && nameA.equals(nameB)) {
 				return 1;
 			} else {
@@ -538,6 +538,7 @@ public class ClassClassifier {
 		public double getScore(ClassInstance a, ClassInstance b, ClassEnvironment env) {
 			String nameA = a.getName();
 			String nameB = b.getName();
+
 			if (Objects.equals(nameA, nameB)) {
 				if ((nameA == null || nameB == null || (a.getAccess() & Opcodes.ACC_SYNTHETIC) != 0 || (b.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) && !(nameA.endsWith("package-info"))) {
 					return 0.7;

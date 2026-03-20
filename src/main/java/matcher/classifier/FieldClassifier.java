@@ -10,13 +10,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import matcher.NameType;
-
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
 
+import matcher.NameType;
 import matcher.type.ClassEnvironment;
 import matcher.type.ClassInstance;
 import matcher.type.FieldInstance;
@@ -301,6 +300,7 @@ public class FieldClassifier {
 		public double getScore(FieldInstance a, FieldInstance b, ClassEnvironment env) {
 			String nameA = a.getName(NameType.MAPPED);
 			String nameB = b.getName();
+
 			if (nameA != null && nameB != null && nameA.equals(nameB)) {
 				return 1;
 			} else {
@@ -314,6 +314,7 @@ public class FieldClassifier {
 		public double getScore(FieldInstance a, FieldInstance b, ClassEnvironment env) {
 			String nameA = a.getName();
 			String nameB = b.getName();
+
 			if (Objects.equals(nameA, nameB)) {
 				if (nameA == null || nameB == null || (a.getAccess() & Opcodes.ACC_SYNTHETIC) != 0 || (b.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
 					return 0.7;

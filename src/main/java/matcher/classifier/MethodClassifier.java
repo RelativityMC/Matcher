@@ -10,8 +10,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import matcher.NameType;
-
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -19,6 +17,7 @@ import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 
+import matcher.NameType;
 import matcher.Util;
 import matcher.type.ClassEnvironment;
 import matcher.type.ClassInstance;
@@ -334,6 +333,7 @@ public class MethodClassifier {
 		public double getScore(MethodInstance a, MethodInstance b, ClassEnvironment env) {
 			String nameA = a.getName(NameType.MAPPED);
 			String nameB = b.getName();
+
 			if (nameA != null && nameB != null && nameA.equals(nameB)) {
 				return 1;
 			} else {
@@ -347,6 +347,7 @@ public class MethodClassifier {
 		public double getScore(MethodInstance a, MethodInstance b, ClassEnvironment env) {
 			String nameA = a.getName();
 			String nameB = b.getName();
+
 			if (Objects.equals(nameA, nameB)) {
 				if (nameA == null || nameB == null || (a.getAccess() & Opcodes.ACC_SYNTHETIC) != 0 || (b.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
 					return 0.7;
