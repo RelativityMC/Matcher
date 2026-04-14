@@ -17,6 +17,7 @@ import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import matcher.model.NameType;
 import matcher.model.Util;
 import matcher.model.type.ClassEnvironment;
 import matcher.model.type.ClassInstance;

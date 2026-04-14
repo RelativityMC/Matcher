@@ -17,7 +17,7 @@ import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 
-import matcher.NameType;
+import matcher.model.NameType;
 import matcher.model.Util;
 import matcher.model.type.ClassEnvironment;
 import matcher.model.type.ClassInstance;

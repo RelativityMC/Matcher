@@ -15,7 +15,7 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
 
-import matcher.NameType;
+import matcher.model.NameType;
 import matcher.model.type.ClassEnvironment;
 import matcher.model.type.ClassInstance;
 import matcher.model.type.FieldInstance;

@@ -1,4 +1,4 @@
-package matcher.util;
+package matcher.core.util;
 
 import java.util.ArrayList;
 import java.util.Comparator;

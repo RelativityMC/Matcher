@@ -34,6 +34,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
 
+import matcher.core.util.HashUtil;
 import matcher.gui.MatcherGui;
 import matcher.gui.MatcherGui.SelectedFile;
 import matcher.gui.ui.GuiConstants;

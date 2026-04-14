@@ -8,7 +8,6 @@ import matcher.model.type.ClassInstance;
 import matcher.model.type.Matchable;
 import matcher.model.type.MemberInstance;
 import matcher.model.type.MethodVarInstance;
-import matcher.util.NaturalOrderComparator;
 
 public final class MappedElementComparators {
 	public static <T extends MemberInstance<T>> Comparator<T> byName(NameType ns) {
@@ -94,8 +93,7 @@ public final class MappedElementComparators {
 				String valA = Objects.toString(a.getName(ns)).concat(Objects.toString(a.getDesc(ns)));
 				String valB = Objects.toString(b.getName(ns)).concat(Objects.toString(b.getDesc(ns)));
 
-				// return valA.compareTo(valB);
-				return NaturalOrderComparator.INSTANCE.compare(valA, valB);
+				return valA.compareTo(valB);
 			}
 		};
 	}

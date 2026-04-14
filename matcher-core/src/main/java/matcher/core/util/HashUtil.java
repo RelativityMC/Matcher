@@ -1,4 +1,4 @@
-package matcher.util;
+package matcher.core.util;
 
 import java.io.IOException;
 import java.nio.file.Files;

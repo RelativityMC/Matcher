@@ -5,4 +5,5 @@ module matcher.core {
 
 	exports matcher.core;
 	exports matcher.core.serdes;
+	exports matcher.core.util;
 }

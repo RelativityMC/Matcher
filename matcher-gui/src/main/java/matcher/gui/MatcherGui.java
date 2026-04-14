@@ -47,6 +47,7 @@ import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.format.MappingFormat;
 
 import matcher.core.Matcher;
+import matcher.core.util.HashUtil;
 import matcher.gui.srcprocess.BuiltinDecompiler;
 import matcher.gui.ui.BottomPane;
 import matcher.gui.ui.GuiConstants;
@@ -65,7 +66,6 @@ import matcher.model.mapping.MappingField;
 import matcher.model.mapping.Mappings;
 import matcher.model.type.ClassEnvironment;
 import matcher.model.type.MatchType;
-import matcher.util.HashUtil;
 
 public class MatcherGui extends Application {
 	@Override
