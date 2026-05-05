@@ -187,6 +187,11 @@ public final class ClassInstance implements ParentInstance, Matchable<ClassInsta
 			return getNestedName(outerClass.getName(type), ret.substring(ret.lastIndexOf('/') + 1));
 		} else { // ret is an outer name, restore pkg
 			String matchedOuterName = matchedClass.outerClass.getName(type);
+
+			if (matchedOuterName == null) {
+				return null;
+			}
+
 			int pkgEnd = matchedOuterName.lastIndexOf('/');
 			if (pkgEnd > 0) ret = matchedOuterName.substring(0, pkgEnd + 1).concat(ret);
 
