@@ -14,6 +14,7 @@ import java.util.function.Function;
 import java.util.function.ToIntBiFunction;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
@@ -513,10 +514,16 @@ public class ClassifierUtil {
 		if (sizeA == sizeB) {
 			boolean match = true;
 
-			for (int i = 0; i < sizeA; i++) {
-				if (elementComparator.compare(elementRetriever.apply(listA, i), elementRetriever.apply(listB, i)) != COMPARED_SIMILAR) {
-					match = false;
-					break;
+			if (sizeA > 4096) {
+				match = IntStream.range(0, sizeA)
+						.parallel()
+						.allMatch(i -> elementComparator.compare(elementRetriever.apply(listA, i), elementRetriever.apply(listB, i)) == COMPARED_SIMILAR);
+			} else {
+				for (int i = 0; i < sizeA; i++) {
+					if (elementComparator.compare(elementRetriever.apply(listA, i), elementRetriever.apply(listB, i)) != COMPARED_SIMILAR) {
+						match = false;
+						break;
+					}
 				}
 			}
 
@@ -527,6 +534,23 @@ public class ClassifierUtil {
 		int[] v0 = new int[sizeB + 1];
 		int[] v1 = new int[sizeB + 1];
 
+		byte[][] costs;
+
+		if (sizeA * sizeB > 4096) {
+			costs = new byte[sizeA][sizeB];
+			IntStream.range(0, sizeA)
+					.parallel()
+					.forEach(indexA -> {
+						for (int indexB = 0; indexB < sizeB; indexB++) {
+							int cost = elementComparator.compare(elementRetriever.apply(listA, indexA), elementRetriever.apply(listB, indexB));
+							if (cost > Byte.MAX_VALUE || cost < Byte.MIN_VALUE) throw new AssertionError();
+							costs[indexA][indexB] = (byte) cost;
+						}
+					});
+		} else {
+			costs = null;
+		}
+
 		for (int i = 1; i < v0.length; i++) {
 			v0[i] = i * COMPARED_DISTINCT;
 		}
@@ -535,7 +559,14 @@ public class ClassifierUtil {
 			v1[0] = (i + 1) * COMPARED_DISTINCT;
 
 			for (int j = 0; j < sizeB; j++) {
-				int cost = elementComparator.compare(elementRetriever.apply(listA, i), elementRetriever.apply(listB, j));
+				int cost;
+
+				if (costs != null) {
+					cost = costs[i][j];
+				} else {
+					cost = elementComparator.compare(elementRetriever.apply(listA, i), elementRetriever.apply(listB, j));
+				}
+
 				v1[j + 1] = Math.min(Math.min(v1[j] + COMPARED_DISTINCT, v0[j + 1] + COMPARED_DISTINCT), v0[j] + cost);
 			}
 
@@ -585,10 +616,16 @@ public class ClassifierUtil {
 		if (sizeA == sizeB) {
 			boolean match = true;
 
-			for (int i = 0; i < sizeA; i++) {
-				if (elementComparator.compare(elementRetriever.apply(listA, i), elementRetriever.apply(listB, i)) != COMPARED_SIMILAR) {
-					match = false;
-					break;
+			if (sizeA > 4096) {
+				match = IntStream.range(0, sizeA)
+						.parallel()
+						.allMatch(i -> elementComparator.compare(elementRetriever.apply(listA, i), elementRetriever.apply(listB, i)) == COMPARED_SIMILAR);
+			} else {
+				for (int i = 0; i < sizeA; i++) {
+					if (elementComparator.compare(elementRetriever.apply(listA, i), elementRetriever.apply(listB, i)) != COMPARED_SIMILAR) {
+						match = false;
+						break;
+					}
 				}
 			}
 
@@ -605,6 +642,23 @@ public class ClassifierUtil {
 		int size = sizeA + 1;
 		int[] v = new int[size * (sizeB + 1)];
 
+		byte[][] costs;
+
+		if (sizeA * sizeB > 4096) {
+			costs = new byte[sizeA][sizeB];
+			IntStream.range(0, sizeA)
+					.parallel()
+					.forEach(indexA -> {
+						for (int indexB = 0; indexB < sizeB; indexB++) {
+							int cost = elementComparator.compare(elementRetriever.apply(listA, indexA), elementRetriever.apply(listB, indexB));
+							if (cost > Byte.MAX_VALUE || cost < Byte.MIN_VALUE) throw new AssertionError();
+							costs[indexA][indexB] = (byte) cost;
+						}
+					});
+		} else {
+			costs = null;
+		}
+
 		for (int i = 1; i <= sizeA; i++) {
 			v[i + 0] = i * COMPARED_DISTINCT;
 		}
@@ -615,7 +669,13 @@ public class ClassifierUtil {
 
 		for (int j = 1; j <= sizeB; j++) {
 			for (int i = 1; i <= sizeA; i++) {
-				int cost = elementComparator.compare(elementRetriever.apply(listA, i - 1), elementRetriever.apply(listB, j - 1));
+				int cost;
+
+				if (costs != null) {
+					cost = costs[i - 1][j - 1];
+				} else {
+					cost = elementComparator.compare(elementRetriever.apply(listA, i - 1), elementRetriever.apply(listB, j - 1));
+				}
 
 				v[i + j * size] = Math.min(Math.min(v[i - 1 + j * size] + COMPARED_DISTINCT,
 						v[i + (j - 1) * size] + COMPARED_DISTINCT),
@@ -707,6 +767,10 @@ public class ClassifierUtil {
 	}
 
 	public static <T extends Matchable<T>> List<RankResult<T>> rank(T src, T[] dsts, Collection<IClassifier<T>> classifiers, BiPredicate<T, T> potentialEqualityCheck, ClassEnvironment env, double maxMismatch) {
+		if (dsts.length > 32) {
+			return rankParallel(src, dsts, classifiers, potentialEqualityCheck, env, maxMismatch);
+		}
+
 		List<RankResult<T>> ret = new ArrayList<>(dsts.length);
 
 		for (T dst : dsts) {
